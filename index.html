@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>영어 복습 학습 사이트</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #161820;
+    --card: #1c1e2a;
+    --card2: #222436;
+    --border: #2e3150;
+    --accent: #7c83f7;
+    --accent2: #a78bfa;
+    --accent3: #34d399;
+    --accent4: #f59e0b;
+    --accent5: #f87171;
+    --text: #e8eaf6;
+    --text2: #9ea3c7;
+    --text3: #6b7099;
+    --highlight: rgba(124,131,247,0.15);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', sans-serif; min-height: 100vh; }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #0f1117 0%, #1a1b2e 50%, #0f1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 28px 32px;
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  .header-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .logo { font-family: 'Crimson Pro', serif; font-size: 1.7rem; color: var(--accent); letter-spacing: -0.02em; }
+  .logo span { color: var(--accent3); }
+  .subtitle { font-size: 0.78rem; color: var(--text3); margin-top: 2px; }
+  .progress-bar { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: var(--text2); }
+  .progress-fill { width: 140px; height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .progress-inner { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); width: 0%; transition: width 0.4s; border-radius: 99px; }
+
+  /* MAIN LAYOUT */
+  .app { max-width: 1100px; margin: 0 auto; padding: 32px 24px; display: grid; grid-template-columns: 240px 1fr; gap: 28px; }
+
+  /* SIDEBAR */
+  .sidebar { position: sticky; top: 100px; height: fit-content; }
+  .sidebar-section { margin-bottom: 28px; }
+  .sidebar-label { font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 10px; }
+  .passage-list { display: flex; flex-direction: column; gap: 4px; }
+  .passage-btn {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    border-radius: 8px; border: 1px solid transparent;
+    background: transparent; color: var(--text2); font-size: 0.82rem;
+    cursor: pointer; transition: all 0.2s; text-align: left; font-family: 'Noto Sans KR', sans-serif;
+  }
+  .passage-btn:hover { background: var(--card); color: var(--text); border-color: var(--border); }
+  .passage-btn.active { background: var(--highlight); color: var(--accent); border-color: var(--accent); }
+  .passage-num { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text3); min-width: 22px; }
+  .passage-btn.active .passage-num { color: var(--accent); }
+  .passage-done { margin-left: auto; color: var(--accent3); font-size: 0.75rem; display: none; }
+  .passage-btn.done .passage-done { display: block; }
+
+  /* MODE TABS */
+  .mode-tabs { display: flex; gap: 4px; flex-direction: column; }
+  .mode-tab {
+    padding: 9px 12px; border-radius: 8px; border: 1px solid transparent;
+    background: transparent; color: var(--text2); font-size: 0.8rem;
+    cursor: pointer; transition: all 0.2s; text-align: left;
+    font-family: 'Noto Sans KR', sans-serif; display: flex; align-items: center; gap: 8px;
+  }
+  .mode-tab:hover { background: var(--card); color: var(--text); }
+  .mode-tab.active { background: var(--card2); color: var(--text); border-color: var(--border); }
+  .mode-icon { font-size: 1rem; }
+
+  /* MAIN CONTENT */
+  .main-content { min-width: 0; }
+  .passage-header {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 24px 28px; margin-bottom: 20px;
+  }
+  .passage-tag { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; }
+  .passage-title { font-family: 'Crimson Pro', serif; font-size: 1.3rem; color: var(--text); }
+  .passage-text {
+    font-family: 'Crimson Pro', serif; font-size: 1.05rem; line-height: 1.85;
+    color: #c8ccf0; padding: 20px 0 0; border-top: 1px solid var(--border); margin-top: 16px;
+  }
+  .passage-text .word-hl { cursor: pointer; border-bottom: 1px dashed var(--accent2); color: var(--accent2); transition: color 0.15s; }
+  .passage-text .word-hl:hover { color: var(--accent); }
+
+  /* STUDY PANELS */
+  .panel { display: none; animation: fadeIn 0.25s ease; }
+  .panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* VOCAB SECTION */
+  .vocab-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .vocab-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 18px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
+  }
+  .vocab-card::before { content:''; position:absolute; inset:0; background: var(--highlight); opacity:0; transition: opacity 0.2s; }
+  .vocab-card:hover::before { opacity:1; }
+  .vocab-card:hover { border-color: var(--accent); }
+  .vocab-word { font-family: 'Crimson Pro', serif; font-size: 1.15rem; color: var(--accent2); font-style: italic; }
+  .vocab-pos { font-size: 0.68rem; color: var(--accent3); font-family: 'JetBrains Mono', monospace; margin-left: 6px; }
+  .vocab-meaning { font-size: 0.85rem; color: var(--text2); margin-top: 6px; }
+  .vocab-example { font-size: 0.78rem; color: var(--text3); margin-top: 6px; font-style: italic; font-family: 'Crimson Pro', serif; }
+
+  /* PHRASE SECTION */
+  .phrase-list { display: flex; flex-direction: column; gap: 12px; }
+  .phrase-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 20px; transition: border-color 0.2s;
+  }
+  .phrase-card:hover { border-color: var(--accent3); }
+  .phrase-en { font-family: 'Crimson Pro', serif; font-size: 1.05rem; color: var(--accent3); }
+  .phrase-ko { font-size: 0.85rem; color: var(--text2); margin-top: 6px; }
+  .phrase-note { font-size: 0.78rem; color: var(--text3); margin-top: 4px; }
+
+  /* QUIZ SECTION */
+  .quiz-area { display: flex; flex-direction: column; gap: 20px; }
+  .quiz-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 22px 24px;
+  }
+  .quiz-qnum { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text3); margin-bottom: 8px; }
+  .quiz-question { font-size: 0.95rem; color: var(--text); line-height: 1.6; margin-bottom: 16px; }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-opt {
+    padding: 11px 16px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--bg2); color: var(--text2); font-size: 0.87rem;
+    cursor: pointer; transition: all 0.2s; text-align: left;
+    font-family: 'Noto Sans KR', sans-serif; display: flex; gap: 10px; align-items: flex-start;
+  }
+  .quiz-opt:hover { border-color: var(--accent); color: var(--text); background: var(--highlight); }
+  .quiz-opt.correct { border-color: var(--accent3) !important; background: rgba(52,211,153,0.1) !important; color: var(--accent3) !important; }
+  .quiz-opt.wrong { border-color: var(--accent5) !important; background: rgba(248,113,113,0.1) !important; color: var(--accent5) !important; }
+  .quiz-opt.disabled { pointer-events: none; }
+  .quiz-opt-label { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text3); min-width: 14px; padding-top: 2px; }
+  .quiz-feedback { margin-top: 12px; padding: 10px 14px; border-radius: 8px; font-size: 0.83rem; display: none; }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.ok { background: rgba(52,211,153,0.1); color: var(--accent3); border: 1px solid rgba(52,211,153,0.3); }
+  .quiz-feedback.bad { background: rgba(248,113,113,0.1); color: var(--accent5); border: 1px solid rgba(248,113,113,0.3); }
+
+  /* TRANSLATION PANEL */
+  .trans-area { display: flex; flex-direction: column; gap: 16px; }
+  .trans-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px;
+  }
+  .trans-en { font-family: 'Crimson Pro', serif; font-size: 1.05rem; color: #c8ccf0; line-height: 1.75; }
+  .trans-en .chunk { cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; padding: 0 1px; }
+  .trans-en .chunk:hover { border-color: var(--accent4); color: var(--accent4); }
+  .trans-ko { font-size: 0.88rem; color: var(--text2); line-height: 1.7; padding-top: 12px; border-top: 1px solid var(--border); margin-top: 12px; display: none; }
+  .trans-ko.visible { display: block; }
+  .trans-toggle {
+    margin-top: 10px; font-size: 0.78rem; color: var(--accent); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+    border: none; background: none; font-family: 'Noto Sans KR', sans-serif;
+  }
+  .trans-toggle:hover { color: var(--accent2); }
+  .chunk-tooltip {
+    position: fixed; background: var(--card2); border: 1px solid var(--accent4);
+    color: var(--accent4); font-size: 0.78rem; padding: 6px 10px; border-radius: 6px;
+    pointer-events: none; display: none; z-index: 999; max-width: 200px;
+  }
+
+  /* SECTION TITLE */
+  .section-title { font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 16px; font-family: 'JetBrains Mono', monospace; }
+
+  /* WORD TOOLTIP */
+  .word-tooltip {
+    position: fixed; background: var(--card2); border: 1px solid var(--accent2);
+    color: var(--text); padding: 10px 14px; border-radius: 10px;
+    font-size: 0.82rem; pointer-events: none; display: none; z-index: 999;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4); max-width: 220px;
+  }
+  .word-tooltip strong { color: var(--accent2); font-family: 'Crimson Pro', serif; font-size: 1rem; }
+
+  /* SCORE BADGE */
+  .score-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--card); border: 1px solid var(--border);
+    padding: 5px 12px; border-radius: 99px; font-size: 0.78rem; color: var(--text2);
+    font-family: 'JetBrains Mono', monospace; margin-bottom: 16px;
+  }
+  .score-badge span { color: var(--accent3); }
+
+  /* MOBILE */
+  @media (max-width: 720px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { position: static; }
+    .vocab-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <div class="logo">영어 복습<span> Study</span></div>
+      <div class="subtitle">지필평가 대비 · 11개 지문</div>
+    </div>
+    <div class="progress-bar">
+      <span id="score-display">0 / 22</span>
+      <div class="progress-fill"><div class="progress-inner" id="progress-inner"></div></div>
+    </div>
+  </div>
+</header>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">학습 모드</div>
+      <div class="mode-tabs">
+        <button class="mode-tab active" onclick="setMode('vocab')" data-mode="vocab"><span class="mode-icon">📚</span> 단어 학습</button>
+        <button class="mode-tab" onclick="setMode('phrase')" data-mode="phrase"><span class="mode-icon">🔗</span> 구문 분석</button>
+        <button class="mode-tab" onclick="setMode('trans')" data-mode="trans"><span class="mode-icon">🌐</span> 해석 연습</button>
+        <button class="mode-tab" onclick="setMode('quiz')" data-mode="quiz"><span class="mode-icon">✏️</span> 내용 이해</button>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">지문 선택</div>
+      <div class="passage-list" id="passage-list"></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content" id="main-content">
+    <!-- content injected by JS -->
+  </main>
+</div>
+
+<div class="word-tooltip" id="word-tooltip"></div>
+<div class="chunk-tooltip" id="chunk-tooltip"></div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const passages = [
+  {
+    id: 1,
+    title: "티백의 비유 - 리더십과 소통",
+    tag: "지문 1-2 · 유추 / 리더십",
+    text: `Imagine you have the best tea in the world and you put it into a bag that's <span class="word-hl" data-word="impermeable" data-def="불투과성의 (물이 통하지 않는)">impermeable</span>. It won't work. You just won't be able to make a cup of tea. For the teabag to work, it needs to be <span class="word-hl" data-word="porous" data-def="다공성의, 구멍이 많은 (물이 통하는)">porous</span>. You need the tea and the water to come in contact with each other. In our lives too, we cannot survive and <span class="word-hl" data-word="thrive" data-def="번성하다, 잘 자라다">thrive</span> in <span class="word-hl" data-word="isolation" data-def="고립, 격리">isolation</span>. Leaders need to be careful not to build walls around themselves that prevent people from reaching out to them.`,
+    vocab: [
+      { word: "impermeable", pos: "adj", meaning: "불투과성의, 물이 통하지 않는", example: "an impermeable bag" },
+      { word: "porous", pos: "adj", meaning: "다공성의, 구멍이 많은 (물이 통하는)", example: "a porous material" },
+      { word: "thrive", pos: "v", meaning: "번성하다, 잘 성장하다", example: "thrive in cooperation" },
+      { word: "isolation", pos: "n", meaning: "고립, 격리", example: "survive in isolation" },
+      { word: "prevent", pos: "v", meaning: "막다, 방해하다", example: "prevent people from reaching out" },
+      { word: "reach out", pos: "phr", meaning: "연락하다, 손을 내밀다", example: "reach out to them" },
+    ],
+    phrases: [
+      { en: "come in contact with", ko: "~와 접촉하다", note: "티백 비유의 핵심 표현" },
+      { en: "survive and thrive", ko: "생존하고 번성하다", note: "살아남을 뿐 아니라 잘 성장한다" },
+      { en: "build walls around themselves", ko: "자신 주위에 벽을 쌓다", note: "고립·단절을 비유적으로 표현" },
+      { en: "reach out to", ko: "~에게 연락하다/다가가다", note: "도움·소통을 요청하는 행동" },
+    ],
+    chunks: [
+      { en: "Imagine you have the best tea in the world", ko: "세상에서 가장 좋은 차를 가지고 있다고 상상해보라" },
+      { en: "and you put it into a bag that's impermeable.", ko: "그리고 그것을 불투과성 백에 넣는다면," },
+      { en: "It won't work.", ko: "그것은 효과가 없을 것이다." },
+      { en: "For the teabag to work, it needs to be porous.", ko: "티백이 작동하려면, 다공성이어야 한다." },
+      { en: "In our lives too, we cannot survive and thrive in isolation.", ko: "우리의 삶에서도, 우리는 고립 속에서 생존하고 번성할 수 없다." },
+      { en: "Leaders need to be careful not to build walls around themselves", ko: "리더들은 자신 주위에 벽을 쌓지 않도록 조심해야 한다" },
+      { en: "that prevent people from reaching out to them.", ko: "그 벽이 사람들이 자신에게 다가오는 것을 막기 때문이다." },
+    ],
+    quiz: [
+      {
+        q: "괄호 (A), (B), (C)에서 문맥상 알맞은 낱말로 짝지어진 것은?\n(A) bag that's [impermeable / porous]\n(B) needs to be [impermeable / porous]\n(C) cannot thrive in [isolation / cooperation]",
+        opts: ["impermeable - porous - isolation", "porous - impermeable - cooperation", "porous - porous - cooperation", "impermeable - porous - cooperation", "impermeable - impermeable - isolation"],
+        ans: 0,
+        exp: "티백이 안 되려면 물이 안 통해야(impermeable)하고, 작동하려면 다공성(porous)이어야 한다. 우리 삶도 '고립(isolation)' 속에서는 번성할 수 없다는 흐름."
+      },
+      {
+        q: "위 글의 요지로 가장 적절한 것은?",
+        opts: ["리더는 전문적인 지식을 갖추어야 한다.", "개인의 창의성은 고립된 환경에서 발휘된다.", "차의 품질은 티백의 재질보다 훨씬 중요하다.", "리더는 사람들과 소통하고 접촉할 수 있는 장벽 없는 태도를 가져야 한다.", "팀워크보다 개인의 역량이 우선시되어야 한다."],
+        ans: 3,
+        exp: "티백 비유를 통해, 리더도 '다공성'처럼 열린 태도로 사람들과 소통해야 한다는 메시지를 전달한다."
+      }
+    ]
+  },
+  {
+    id: 2,
+    title: "식당의 비유 - 꽃의 향기 광고",
+    tag: "지문 3-4 · 자연 / 비유",
+    text: `All of the restaurants are using carefully chosen words to <span class="word-hl" data-word="evoke" data-def="불러일으키다, 연상시키다">evoke</span> vivid mental images of delicious food and rich desserts in order to <span class="word-hl" data-word="draw" data-def="끌어들이다, 유인하다">draw</span> the potential customer to their particular <span class="word-hl" data-word="establishment" data-def="가게, 시설">establishment</span>. Just like the restaurants, nature has its own dining establishments. In a fashion similar to the restaurants' financial <span class="word-hl" data-word="dependence" data-def="의존 (independence는 오류)">dependence</span> upon drawing in many customers, the <span class="word-hl" data-word="restaurateurs" data-def="식당 주인들">restaurateurs</span> of the natural world (i.e., flowers) must also attract potential diners to sample their offerings. In the natural world, there are no neon signs or flashy words in which to market a potential meal to hungry animals. Instead of using a written language or neon sign, they advertise their offerings just as effectively using the language of smell.`,
+    vocab: [
+      { word: "evoke", pos: "v", meaning: "불러일으키다, 연상시키다", example: "evoke vivid mental images" },
+      { word: "draw", pos: "v", meaning: "끌어들이다, 유인하다", example: "draw the customer" },
+      { word: "establishment", pos: "n", meaning: "가게, 사업체, 시설", example: "dining establishment" },
+      { word: "restaurateur", pos: "n", meaning: "식당 주인", example: "restaurateurs of nature = flowers" },
+      { word: "sample", pos: "v", meaning: "맛보다, 시식하다", example: "sample their offerings" },
+      { word: "dependence", pos: "n", meaning: "의존 (↔ independence)", example: "financial dependence on customers" },
+    ],
+    phrases: [
+      { en: "carefully chosen words", ko: "신중하게 고른 단어들", note: "식당 메뉴판 묘사에서 사용" },
+      { en: "in a fashion similar to", ko: "~와 유사한 방식으로", note: "비교 표현" },
+      { en: "just as effectively", ko: "마찬가지로 효과적으로", note: "꽃도 인간 식당만큼 효과적으로 광고함" },
+      { en: "the language of smell", ko: "냄새(향기)의 언어", note: "꽃이 향기로 소통하는 것을 비유" },
+    ],
+    chunks: [
+      { en: "All of the restaurants are using carefully chosen words", ko: "모든 식당들은 신중하게 고른 단어들을 사용하고 있다" },
+      { en: "to evoke vivid mental images of delicious food", ko: "맛있는 음식의 생생한 심상을 불러일으키기 위해" },
+      { en: "in order to draw the potential customer to their establishment.", ko: "잠재 고객을 그들의 가게로 끌어들이기 위해." },
+      { en: "Just like the restaurants, nature has its own dining establishments.", ko: "식당들과 마찬가지로, 자연도 자체적인 식당들을 가지고 있다." },
+      { en: "they advertise their offerings just as effectively using the language of smell.", ko: "그들은 냄새의 언어를 사용하여 마찬가지로 효과적으로 자신의 것들을 광고한다." },
+    ],
+    quiz: [
+      {
+        q: "밑줄 친 (C)independence를 문맥상 올바른 단어로 고치면?",
+        opts: ["independence → dependence", "independence → occurrence", "independence → difference", "independence → preference", "independence → persistence"],
+        ans: 0,
+        exp: "식당이 고객을 유치하는 데 '의존(dependence)'한다는 것이 맞는 문맥. independence(독립)은 반의어로 어색하다."
+      },
+      {
+        q: "위 글에서 '자연 세계의 식당(dining establishments)'이 광고를 위해 사용하는 수단은?",
+        opts: ["화려한 네온사인", "정교하게 쓰인 언어", "맛있는 디저트 이미지", "꽃의 향기(smell)", "잠재적 고객의 재정 상태"],
+        ans: 3,
+        exp: "마지막 문장에서 꽃은 '냄새의 언어(language of smell)'를 통해 광고한다고 명시되어 있다."
+      }
+    ]
+  },
+  {
+    id: 3,
+    title: "쌍곡 할인 - 즉각 보상의 심리",
+    tag: "지문 5-6 · 심리학",
+    text: `Would you rather receive $1,000 in a year or $1,100 in a year and a month? Most people will <span class="word-hl" data-word="opt for" data-def="~을 선택하다">opt for</span> the larger sum in thirteen months. Second question: Would you prefer $1,000 today cash on the table or $1,100 in a month? If you think like most people, you'll take the $1,000 right away. This is amazing. In both cases, if you hold out for just a month longer, you get $100 more. The introduction of "now" causes us to make <span class="word-hl" data-word="inconsistent" data-def="비일관적인, 모순된">inconsistent</span> decisions. Science calls this phenomenon <span class="word-hl" data-word="hyperbolic discounting" data-def="쌍곡 할인 - 보상이 가까울수록 더 크게 느끼는 현상">hyperbolic discounting</span>. The closer a reward is, the higher our "emotional interest rate" rises and the more we are willing to give up in exchange for it.`,
+    vocab: [
+      { word: "opt for", pos: "phr", meaning: "~을 선택하다", example: "opt for the larger sum" },
+      { word: "hold out", pos: "phr", meaning: "버티다, 기다리다", example: "hold out for a month longer" },
+      { word: "inconsistent", pos: "adj", meaning: "비일관적인, 모순된", example: "make inconsistent decisions" },
+      { word: "hyperbolic discounting", pos: "n", meaning: "쌍곡 할인 (즉각 보상 과대평가)", example: "Science calls this hyperbolic discounting" },
+      { word: "phenomenon", pos: "n", meaning: "현상", example: "this phenomenon" },
+      { word: "in exchange for", pos: "phr", meaning: "~의 대가로", example: "willing to give up in exchange for it" },
+    ],
+    phrases: [
+      { en: "cash on the table", ko: "눈앞의 현금", note: "지금 당장 받을 수 있는 실물 보상 강조" },
+      { en: "hold out for", ko: "~을 위해 기다리다/버티다", note: "더 좋은 것을 위해 참는 것" },
+      { en: "the closer ... the higher ...", ko: "~할수록 더 ~하다", note: "비례 관계 표현 (the+비교급, the+비교급)" },
+      { en: "in exchange for", ko: "~의 대가로, ~와 교환하여", note: "포기/희생의 대상을 나타냄" },
+    ],
+    chunks: [
+      { en: "Would you rather receive $1,000 in a year or $1,100 in a year and a month?", ko: "1년 뒤 1,000달러와 1년 1개월 뒤 1,100달러 중 어느 것을 받겠는가?" },
+      { en: "Most people will opt for the larger sum in thirteen months.", ko: "대부분의 사람들은 13개월 뒤의 더 큰 금액을 선택할 것이다." },
+      { en: "The introduction of 'now' causes us to make inconsistent decisions.", ko: "'지금'이라는 요소의 도입이 우리가 비일관적인 결정을 내리게 한다." },
+      { en: "The closer a reward is, the higher our 'emotional interest rate' rises", ko: "보상이 가까울수록, 우리의 '감정적 이자율'은 더 높아진다" },
+      { en: "and the more we are willing to give up in exchange for it.", ko: "그리고 우리는 그것을 위해 더 많이 포기하려 한다." },
+    ],
+    quiz: [
+      {
+        q: "위 글의 주제로 가장 적절한 것은?",
+        opts: ["보상 규모에 따른 합리적 선택의 중요성", "이자율 변화가 경제 성장에 미치는 영향", "보상의 즉각성이 의사 결정에 미치는 영향", "미래의 불확실성에 대비하는 현명한 자세", "장기 투자가 단기 투자보다 유리한 이유"],
+        ans: 2,
+        exp: "'지금(now)'이라는 즉각성이 개입될 때 의사결정이 비일관적이 된다는 것이 주제. hyperbolic discounting이 이 현상의 이름이다."
+      },
+      {
+        q: "글의 내용과 일치하지 않는 것은?",
+        opts: ["1년 뒤 1,000달러보다 1년 1개월 뒤 1,100달러를 선택하는 것이 일반적이다.", "당장 받는 1,000달러보다 한 달 뒤 1,100달러를 선택하는 사람이 더 많다.", "'현재'라는 요소가 개입되면 의사 결정이 비일관적으로 변할 수 있다.", "보상이 가까울수록 '감정적 이자율'은 상승한다.", "'하이퍼볼릭 디스카운팅'은 보상이 가까울수록 더 많이 포기하려는 경향과 관련 있다."],
+        ans: 1,
+        exp: "글에 따르면 '지금 당장' 1,000달러를 선택하는 사람이 더 많다. 즉, 한 달 뒤 1,100달러를 선택하는 사람이 더 많다는 것은 틀렸다."
+      }
+    ]
+  },
+  {
+    id: 4,
+    title: "유가와 경제 성장",
+    tag: "지문 7-8 · 경제",
+    text: `Low oil prices are a good thing, because it means lower energy costs of production for the majority of industries. Firms directly benefit from the <span class="word-hl" data-word="decrease" data-def="감소 (문맥상 올바름)">decrease</span> in their costs of production. This has the effect of <span class="word-hl" data-word="stimulating" data-def="자극하다, 촉진하다">stimulating</span> the <span class="word-hl" data-word="aggregate supply" data-def="총공급 (경제 용어)">aggregate supply</span> and provides a stimulus for growth. <span class="word-hl" data-word="Conversely" data-def="반대로, 역으로">Conversely</span>, a sudden rise in oil prices due to a <span class="word-hl" data-word="shrink" data-def="줄어들다, 축소되다">shrink</span> in oil production is never good news. Following an oil price jump of 10 per cent, an economy typically sees its output (GDP) <span class="word-hl" data-word="accelerated→slowed" data-def="오류 단어: accelerated(가속됨) → slowed(둔화됨)로 수정 필요">accelerated</span> by close to 1 percentage point.`,
+    vocab: [
+      { word: "aggregate supply", pos: "n", meaning: "총공급 (경제 용어)", example: "stimulating the aggregate supply" },
+      { word: "stimulus", pos: "n", meaning: "자극, 경기 부양책", example: "provides a stimulus for growth" },
+      { word: "conversely", pos: "adv", meaning: "반대로, 역으로", example: "Conversely, a sudden rise..." },
+      { word: "shrink", pos: "v/n", meaning: "줄어들다/축소", example: "a shrink in oil production" },
+      { word: "accelerate", pos: "v", meaning: "가속하다 (문맥상 틀린 표현)", example: "→ 정답: slowed" },
+      { word: "percentage point", pos: "n", meaning: "퍼센트포인트", example: "by close to 1 percentage point" },
+    ],
+    phrases: [
+      { en: "costs of production", ko: "생산 비용", note: "경제 핵심 용어" },
+      { en: "have the effect of -ing", ko: "~하는 효과가 있다", note: "결과 표현 패턴" },
+      { en: "a stimulus for growth", ko: "성장을 위한 자극/부양책", note: "" },
+      { en: "by close to 1 percentage point", ko: "약 1퍼센트포인트만큼", note: "수치 표현" },
+    ],
+    chunks: [
+      { en: "Low oil prices are a good thing, because it means lower energy costs of production.", ko: "유가 하락은 좋은 일인데, 이는 대부분 산업의 에너지 생산 비용이 낮아짐을 의미하기 때문이다." },
+      { en: "This has the effect of stimulating the aggregate supply and provides a stimulus for growth.", ko: "이것은 총공급을 자극하는 효과가 있고 성장을 위한 자극을 제공한다." },
+      { en: "Conversely, a sudden rise in oil prices due to a shrink in oil production is never good news.", ko: "반대로, 석유 생산 감소로 인한 갑작스러운 유가 상승은 결코 좋은 소식이 아니다." },
+      { en: "an economy typically sees its output (GDP) slowed by close to 1 percentage point.", ko: "경제는 일반적으로 산출량(GDP)이 약 1퍼센트포인트 둔화되는 것을 보게 된다." },
+    ],
+    quiz: [
+      {
+        q: "밑줄 친 (C)accelerated를 문맥에 맞게 고쳐 쓰시오.",
+        opts: ["slowed", "boosted", "maintained", "increased", "expanded"],
+        ans: 0,
+        exp: "유가 상승은 경제에 부정적이므로 GDP는 '둔화(slowed)'된다. accelerated(가속됨)는 반의어이므로 오류."
+      },
+      {
+        q: "유가 하락이 경제 성장에 자극을 주는 이유는?",
+        opts: ["에너지 부문의 수익이 급증하기 때문에", "대부분 산업의 생산 비용이 감소하기 때문에", "석유 생산량이 갑작스럽게 줄어들기 때문에", "물류 산업보다 자동차 산업이 더 중요하기 때문에", "총공급을 억제하는 효과가 있기 때문에"],
+        ans: 1,
+        exp: "본문 1~2문장: '대부분 산업의 생산 에너지 비용 절감 → 기업이 직접 혜택 → 총공급 자극 → 성장 자극'"
+      }
+    ]
+  },
+  {
+    id: 5,
+    title: "거북이의 진화적 딜레마",
+    tag: "지문 9-10 · 생물학 / 진화",
+    text: `Turtle hatchlings have <span class="word-hl" data-word="evolved" data-def="진화하다">evolved</span> to crawl toward the light. For millions of years this was a highly <span class="word-hl" data-word="rational" data-def="합리적인, 이성적인">rational</span> strategy because the light on a dark beach represented the reflection of the moon and stars on the water's surface. Following the lights led baby turtles back home to the sea. The problems started when humans began building <span class="word-hl" data-word="beachfront" data-def="해변가의">beachfront</span> homes and <span class="word-hl" data-word="sparkling" data-def="반짝이는">sparkling</span> hotels. Now after hatching, turtles heading for the brightest nearby lights were being guided straight into traffic. Turtles are basing their decisions on simple <span class="word-hl" data-word="cues" data-def="단서, 신호">cues</span> that were perfectly rational for their <span class="word-hl" data-word="ancestors" data-def="조상">ancestors</span>; these days, however, their evolved decision-making mechanisms ______________.`,
+    vocab: [
+      { word: "hatchling", pos: "n", meaning: "갓 부화한 새끼 (여기서는 거북이)", example: "turtle hatchlings" },
+      { word: "evolved", pos: "v", meaning: "진화하다", example: "evolved to crawl toward light" },
+      { word: "rational", pos: "adj", meaning: "합리적인, 이성적인", example: "a rational strategy" },
+      { word: "beachfront", pos: "adj", meaning: "해변가에 위치한", example: "beachfront homes" },
+      { word: "cue", pos: "n", meaning: "단서, 신호", example: "simple cues" },
+      { word: "ancestors", pos: "n", meaning: "조상", example: "rational for their ancestors" },
+    ],
+    phrases: [
+      { en: "crawl toward the light", ko: "빛을 향해 기어가다", note: "거북이 진화 전략의 핵심 행동" },
+      { en: "base decisions on", ko: "~에 근거하여 결정하다", note: "의사결정의 근거 표현" },
+      { en: "guide ... into", ko: "~을 …으로 안내하다/유도하다", note: "turtles → traffic" },
+      { en: "decision-making mechanisms", ko: "의사결정 메커니즘", note: "진화된 본능적 판단 시스템" },
+    ],
+    chunks: [
+      { en: "Turtle hatchlings have evolved to crawl toward the light.", ko: "갓 부화한 거북이들은 빛을 향해 기어가도록 진화했다." },
+      { en: "For millions of years this was a highly rational strategy", ko: "수백만 년 동안 이것은 매우 합리적인 전략이었다" },
+      { en: "because the light on a dark beach represented the reflection of the moon and stars.", ko: "어두운 해변의 빛이 달과 별이 수면에 반사된 것을 나타냈기 때문이다." },
+      { en: "Turtles are basing their decisions on simple cues that were perfectly rational for their ancestors;", ko: "거북이들은 조상들에게 완벽하게 합리적이었던 단순한 단서들에 근거하여 결정을 내리고 있다;" },
+      { en: "these days, however, their evolved decision-making mechanisms ______.", ko: "그러나 오늘날, 그들의 진화된 의사결정 메커니즘은 ______." },
+    ],
+    quiz: [
+      {
+        q: "위 글의 빈칸에 들어갈 말로 가장 적절한 것은?\n'these days, however, their evolved decision-making mechanisms ______________.'",
+        opts: ["serve as a reliable lighthouse for them", "reinforce their fear of brightness", "are being blinded by modern lights", "drive them toward their home in the sea", "are not dominated by the buildings' lights"],
+        ans: 2,
+        exp: "과거엔 빛=바다였지만 현대 인공 조명으로 인해 거북이의 진화된 메커니즘이 '현대 조명에 눈이 멀어버렸다(are being blinded by modern lights)'는 것이 문맥에 맞다."
+      },
+      {
+        q: "새끼 거북의 행동 변화에 대한 설명으로 옳은 것은?",
+        opts: ["원래부터 교통 체증을 향해 가도록 진화했다.", "어두운 해변의 빛을 피하도록 설계되었다.", "과거에는 달빛을 따라가는 것이 생존에 유리한 전략이었다.", "현대 인공 불빛은 거북이 바다를 찾는 데 도움을 준다.", "거북은 현대 환경에 맞춰 메커니즘을 즉각적으로 수정했다."],
+        ans: 2,
+        exp: "본문: '수백만 년 동안 어두운 해변의 빛 = 달과 별의 반사 = 바다'였으므로 달빛을 따르는 것은 생존에 유리했다."
+      }
+    ]
+  },
+  {
+    id: 6,
+    title: "발이 감정을 가장 솔직하게 드러낸다",
+    tag: "지문 11-12 · 신체 언어",
+    text: `The writer and <span class="word-hl" data-word="zoologist" data-def="동물학자">zoologist</span> Desmond Morris observed that our feet communicate exactly what we think and feel more honestly than any other part of our bodies. Why are the feet and legs such accurate reflectors of our <span class="word-hl" data-word="sentiments" data-def="감정, 정서">sentiments</span>? For millions of years, long before humans spoke, our legs and feet reacted to environmental threats <span class="word-hl" data-word="instantaneously" data-def="즉각적으로, 순간적으로">instantaneously</span>, without the need for conscious thought. Our <span class="word-hl" data-word="limbic brain" data-def="변연계 (감정·본능 담당 뇌 부위)">limbic brain</span> made sure that our feet and legs reacted as needed by either ceasing motion, running away, or kicking at a potential threat. This survival <span class="word-hl" data-word="regimen" data-def="체계, 방식">regimen</span>, retained from our ancestral heritage, has served us well and continues to do so today.`,
+    vocab: [
+      { word: "zoologist", pos: "n", meaning: "동물학자", example: "writer and zoologist" },
+      { word: "sentiment", pos: "n", meaning: "감정, 정서", example: "accurate reflectors of our sentiments" },
+      { word: "instantaneously", pos: "adv", meaning: "즉각적으로, 순간적으로", example: "reacted instantaneously" },
+      { word: "limbic brain", pos: "n", meaning: "변연계 (감정·본능을 담당하는 뇌)", example: "Our limbic brain" },
+      { word: "regimen", pos: "n", meaning: "체계, 방식, 규율", example: "survival regimen" },
+      { word: "ancestral heritage", pos: "n", meaning: "선조로부터 물려받은 유산", example: "retained from our ancestral heritage" },
+    ],
+    phrases: [
+      { en: "more honestly than any other", ko: "다른 어떤 것보다 더 솔직하게", note: "최상급 우회 표현 (비교급+any other)" },
+      { en: "without the need for conscious thought", ko: "의식적 사고의 필요 없이", note: "본능적·자동적 반응 강조" },
+      { en: "cease motion", ko: "움직임을 멈추다", note: "위협 반응 중 하나: 얼어붙기" },
+      { en: "has served us well", ko: "우리에게 잘 기능해왔다", note: "현재완료: 과거부터 지금까지" },
+    ],
+    chunks: [
+      { en: "our feet communicate exactly what we think and feel more honestly than any other part of our bodies.", ko: "우리의 발은 신체의 다른 어떤 부위보다 더 솔직하게 우리가 생각하고 느끼는 것을 정확히 전달한다." },
+      { en: "For millions of years, long before humans spoke, our legs and feet reacted to environmental threats instantaneously,", ko: "수백만 년 동안, 인간이 말을 하기 훨씬 전부터, 우리의 다리와 발은 환경적 위협에 즉각적으로 반응했다," },
+      { en: "without the need for conscious thought.", ko: "의식적 사고의 필요 없이." },
+      { en: "This survival regimen, retained from our ancestral heritage, has served us well and continues to do so today.", ko: "조상의 유산에서 물려받은 이 생존 방식은 우리에게 잘 기능해왔고 오늘날에도 계속 그러하다." },
+    ],
+    quiz: [
+      {
+        q: "위 글에서 전체 흐름과 관계 없는 문장은?\n(C) 'In some cultures, therefore, barefoot walking is considered a spiritual practice, connecting the individual to the ancestors.'",
+        opts: ["(A)", "(B)", "(C)", "(D)", "관계 없는 문장 없음"],
+        ans: 2,
+        exp: "(C)는 맨발 걷기가 영적 행위라는 내용으로, 발이 감정을 솔직하게 드러내는 이유(진화적 생존 반응)와 흐름이 맞지 않는다."
+      },
+      {
+        q: "발이 감정을 가장 정직하게 전달하는 이유로 언급된 것은?",
+        opts: ["신체 부위 중 가장 크기 때문에", "언어가 발달하기 전부터 생존 위협에 즉각 반응해왔기 때문에", "변연계가 아닌 의식적 사고의 통제를 받기 때문에", "현대 사회에서 신발을 신지 않는 문화가 많기 때문에", "발은 뇌와 가장 멀리 떨어져 있어 속이기 쉽기 때문에"],
+        ans: 1,
+        exp: "본문: 수백만 년 전 언어 발달 전부터 발과 다리가 위협에 즉각 반응해왔기 때문에(변연계 제어) 가장 솔직하다."
+      }
+    ]
+  },
+  {
+    id: 7,
+    title: "Hikes for Rides 안내문",
+    tag: "지문 13 · 안내문 독해",
+    text: `<strong style="color:var(--accent2)">Hikes for Rides</strong><br><br>
+<span class="word-hl" data-word="Profits" data-def="수익금">Profits</span>: Used for a new tram installation.<br>
+Date: Saturday, September 27th.<br>
+<span class="word-hl" data-word="Registration" data-def="등록">Registration</span>: Early online or <span class="word-hl" data-word="on-site" data-def="현장에서">on-site</span>.<br>
+Fee: $5 (<span class="word-hl" data-word="Free" data-def="무료">Free</span> for children aged 8 and under).<br>
+Notes: Stay on trails, <span class="word-hl" data-word="yield" data-def="양보하다, 길을 비켜주다">yield</span> to wildlife, pets are not allowed.`,
+    vocab: [
+      { word: "profit", pos: "n", meaning: "수익, 이익", example: "Profits used for tram installation" },
+      { word: "installation", pos: "n", meaning: "설치", example: "tram installation" },
+      { word: "registration", pos: "n", meaning: "등록", example: "Early online or on-site registration" },
+      { word: "on-site", pos: "adj", meaning: "현장에서의", example: "on-site registration" },
+      { word: "yield", pos: "v", meaning: "양보하다, 길을 비켜주다", example: "yield to wildlife" },
+      { word: "trail", pos: "n", meaning: "트레일, 등산로", example: "Stay on trails" },
+    ],
+    phrases: [
+      { en: "Profits used for", ko: "수익금은 ~에 사용된다", note: "수동 분사 구문" },
+      { en: "aged 8 and under", ko: "8세 이하", note: "연령 범위 표현" },
+      { en: "yield to wildlife", ko: "야생동물에게 길을 양보하다", note: "트레일 에티켓 표현" },
+      { en: "pets are not allowed", ko: "반려동물은 허용되지 않는다", note: "수동태 금지 표현" },
+    ],
+    chunks: [
+      { en: "Profits: Used for a new tram installation.", ko: "수익금: 새 트램 설치에 사용됩니다." },
+      { en: "Registration: Early online or on-site.", ko: "등록: 사전 온라인 또는 현장 등록 가능." },
+      { en: "Fee: $5 (Free for children aged 8 and under).", ko: "참가비: 5달러 (8세 이하 어린이 무료)." },
+      { en: "Stay on trails, yield to wildlife, pets are not allowed.", ko: "트레일을 벗어나지 말 것, 야생동물에게 길을 양보할 것, 반려동물은 불허." },
+    ],
+    quiz: [
+      {
+        q: "안내문의 내용과 일치하지 않는 것은?",
+        opts: ["수익금은 트램 설치를 위해 사용된다.", "9월 27일 토요일에 행사가 진행된다.", "사전 온라인 등록만 가능하며 현장 등록은 불가하다.", "8세 이하 어린이는 참가비가 면제된다.", "반려동물과 함께 참여할 수 없다."],
+        ans: 2,
+        exp: "안내문에 'Early online or on-site(사전 온라인 또는 현장 등록)'라고 명시되어 있으므로 현장 등록도 가능하다. ③이 일치하지 않는다."
+      },
+      {
+        q: "참가비에 관한 내용으로 맞는 것은?",
+        opts: ["모든 참가자에게 무료이다.", "성인은 10달러이다.", "8세 이하는 무료이며 일반 참가비는 5달러이다.", "온라인 등록 시 할인이 적용된다.", "현장 등록은 더 비싸다."],
+        ans: 2,
+        exp: "Fee: $5, Free for children aged 8 and under."
+      }
+    ]
+  },
+  {
+    id: 8,
+    title: "스티브 잡스의 비유(Analogy) 전략",
+    tag: "지문 17-18 · 기술 / 비유",
+    text: `Steve Jobs used <span class="word-hl" data-word="analogy" data-def="유추, 비유 (두 가지를 비교하여 이해를 돕는 방법)">analogy</span> to get people to <span class="word-hl" data-word="embrace" data-def="받아들이다, 수용하다">embrace</span> the new technology. Before computers, people worked in a physical world. We used paper and pens and physical file folders. What Jobs understood was that a physical office was <span class="word-hl" data-word="fundamentally" data-def="근본적으로">fundamentally</span> similar to a virtual office. To win over the masses, Jobs drew strong analogies between the traditional workplace people knew well with the new, <span class="word-hl" data-word="unfamiliar" data-def="낯선, 익숙하지 않은">unfamiliar</span> virtual workplace. Documents, folders, and desktops are the terms we use in our virtual work because Steve Jobs understood that using <span class="word-hl" data-word="familiar" data-def="친숙한, 익숙한">familiar</span> terms would make the new technology easier to understand.`,
+    vocab: [
+      { word: "analogy", pos: "n", meaning: "유추, 비유 (유사점을 이용한 설명)", example: "drew strong analogies" },
+      { word: "embrace", pos: "v", meaning: "받아들이다, 수용하다", example: "embrace the new technology" },
+      { word: "fundamentally", pos: "adv", meaning: "근본적으로", example: "fundamentally similar" },
+      { word: "win over", pos: "phr", meaning: "설득하다, 지지를 얻다", example: "To win over the masses" },
+      { word: "familiar", pos: "adj", meaning: "친숙한, 익숙한", example: "using familiar terms" },
+      { word: "unfamiliar", pos: "adj", meaning: "낯선, 익숙하지 않은", example: "unfamiliar virtual workplace" },
+    ],
+    phrases: [
+      { en: "get people to embrace", ko: "사람들이 ~을 수용하게 하다", note: "사역 표현 get + O + to V" },
+      { en: "win over the masses", ko: "대중을 설득하다/사로잡다", note: "" },
+      { en: "draw analogies between A and B", ko: "A와 B 사이의 유추를 이끌어내다", note: "비유/유추 전략 표현" },
+      { en: "make ... easier to understand", ko: "~을 더 이해하기 쉽게 만들다", note: "make + O + adj 구조" },
+    ],
+    chunks: [
+      { en: "Steve Jobs used analogy to get people to embrace the new technology.", ko: "스티브 잡스는 사람들이 새 기술을 받아들이게 하기 위해 유추를 사용했다." },
+      { en: "What Jobs understood was that a physical office was fundamentally similar to a virtual office.", ko: "잡스가 이해한 것은 물리적 사무실이 근본적으로 가상 사무실과 유사하다는 것이었다." },
+      { en: "To win over the masses, Jobs drew strong analogies between the traditional workplace and the new virtual workplace.", ko: "대중을 설득하기 위해 잡스는 전통적인 작업 공간과 새로운 가상 작업 공간 사이에 강력한 유추를 이끌어냈다." },
+      { en: "using familiar terms would make the new technology easier to understand.", ko: "친숙한 용어를 사용하는 것이 새 기술을 더 이해하기 쉽게 만들 것이라고 이해했다." },
+    ],
+    quiz: [
+      {
+        q: "밑줄 친 (A)analogy의 의미로 가장 적절한 것은?",
+        opts: ["대조", "유추(비유)", "혁신", "통계", "실험"],
+        ans: 1,
+        exp: "analogy = 두 가지의 유사점을 이용해 설명하는 방법 = 유추/비유. 잡스는 실제 사무실과 컴퓨터 화면의 유사성을 이용했다."
+      },
+      {
+        q: "Steve Jobs가 가상 세계 업무 환경 설계 시 가장 중점을 둔 것은?",
+        opts: ["완전히 새로운 용어를 창조하는 것", "종이와 펜의 사용을 완전히 금지하는 것", "친숙한 물리적 사무실 개념을 가상 환경에 투영하는 것", "복잡한 프로그래밍 언어를 대중에게 가르치는 것", "가상 세계와 실제 세계의 차이점을 극명하게 드러내는 것"],
+        ans: 2,
+        exp: "잡스는 사람들이 이미 알고 있는 물리적 사무실 개념(문서, 폴더, 데스크톱)을 가상 환경에 적용해 친숙하게 만들었다."
+      }
+    ]
+  },
+  {
+    id: 9,
+    title: "학교 운동장 사용 허가 요청 편지",
+    tag: "지문 19 · 편지 / 목적",
+    text: `"I kindly request your <span class="word-hl" data-word="permission" data-def="허락, 허가">permission</span> to use the school playground on Saturday, December 6th... We will ensure that all safety rules are strictly <span class="word-hl" data-word="followed" data-def="따르다, 준수하다">followed</span>."<br><br>
+[요지: 드론 쇼 행사를 위해 학교 운동장 사용 허가를 요청하는 편지]<br>
+행사일: 12월 6일 토요일<br>
+요청자: 지역 사회 단체<br>
+내용: 모든 안전 수칙 준수 약속`,
+    vocab: [
+      { word: "permission", pos: "n", meaning: "허락, 허가", example: "request permission" },
+      { word: "ensure", pos: "v", meaning: "보장하다, 확실히 하다", example: "ensure that rules are followed" },
+      { word: "strictly", pos: "adv", meaning: "엄격히, 철저히", example: "strictly followed" },
+      { word: "kindly", pos: "adv", meaning: "정중하게, 친절하게", example: "I kindly request" },
+      { word: "request", pos: "v/n", meaning: "요청하다/요청", example: "request your permission" },
+      { word: "playground", pos: "n", meaning: "운동장, 놀이터", example: "school playground" },
+    ],
+    phrases: [
+      { en: "I kindly request your permission to", ko: "~에 대한 허락을 정중히 요청합니다", note: "공식 요청 편지의 관용 표현" },
+      { en: "ensure that ... is strictly followed", ko: "~이 엄격히 준수되도록 보장하다", note: "약속/보장 표현" },
+      { en: "safety rules", ko: "안전 수칙", note: "" },
+    ],
+    chunks: [
+      { en: "I kindly request your permission to use the school playground on Saturday, December 6th.", ko: "12월 6일 토요일에 학교 운동장을 사용할 허가를 정중히 요청드립니다." },
+      { en: "We will ensure that all safety rules are strictly followed.", ko: "모든 안전 수칙이 철저히 준수되도록 보장하겠습니다." },
+    ],
+    quiz: [
+      {
+        q: "다음 중 글의 목적으로 가장 적절한 것은?",
+        opts: ["학교 운동장 사용 허가를 요청하려고", "드론 쇼 관람객을 모집하려고", "학교 안전 규칙 수정을 건의하려고", "지역 커뮤니티 센터 홍보를 위해", "쓰레기 무단 투기 방지를 당부하려고"],
+        ans: 0,
+        exp: "'I kindly request your permission to use the school playground'에서 목적은 명확히 학교 운동장 사용 허가 요청이다."
+      },
+      {
+        q: "편지에서 글쓴이가 약속한 내용은?",
+        opts: ["드론 쇼 수익금을 학교에 기부하겠다.", "모든 안전 수칙을 엄격히 준수하겠다.", "학생들에게 드론 교육을 제공하겠다.", "행사 후 운동장을 청소하겠다.", "보험을 가입하겠다."],
+        ans: 1,
+        exp: "'We will ensure that all safety rules are strictly followed.' = 모든 안전 수칙 엄격 준수 약속"
+      }
+    ]
+  },
+  {
+    id: 10,
+    title: "사전의 의미 변화 - 언어의 진화",
+    tag: "지문 15-16 · 언어학",
+    text: `Dictionary definitions are constantly <span class="word-hl" data-word="revised" data-def="개정되다, 수정되다">revised</span> to keep up with our changing uses and knowledge. In Roman times, "addicts" were people who were unable to pay their debts and gave themselves as <span class="word-hl" data-word="slaves" data-def="노예">slaves</span> to their <span class="word-hl" data-word="creditors" data-def="채권자, 빚을 준 사람">creditors</span>. The word eventually came to be associated with drug <span class="word-hl" data-word="dependency" data-def="의존, 중독">dependency</span>: one becomes a slave to one's addiction. The word "husband" originally referred to being a <span class="word-hl" data-word="homeowner" data-def="집 소유자">homeowner</span>; it had nothing to do with being married. On November 5th, 1605, Guy Fawkes tried to blow up the British Parliament. Loyalists burned his <span class="word-hl" data-word="effigy" data-def="(사람을 본 딴) 인형, 초상">effigy</span>, which they nicknamed the "guy." Centuries later, the word lost its negative <span class="word-hl" data-word="connotation" data-def="함축적 의미, 뉘앙스">connotation</span>.`,
+    vocab: [
+      { word: "revised", pos: "v", meaning: "개정하다, 수정하다", example: "constantly revised" },
+      { word: "creditor", pos: "n", meaning: "채권자 (돈을 빌려준 사람)", example: "gave themselves to creditors" },
+      { word: "dependency", pos: "n", meaning: "의존, 중독", example: "drug dependency" },
+      { word: "homeowner", pos: "n", meaning: "집 소유자", example: "husband = homeowner (원래 의미)" },
+      { word: "effigy", pos: "n", meaning: "(사람을 본뜬) 인형, 초상", example: "burned his effigy" },
+      { word: "connotation", pos: "n", meaning: "함축적 의미, 뉘앙스", example: "lost its negative connotation" },
+    ],
+    phrases: [
+      { en: "keep up with", ko: "~을 따라가다, ~에 뒤처지지 않다", note: "변화에 발맞추다" },
+      { en: "come to be associated with", ko: "~와 연관되게 되다", note: "의미 변화 표현" },
+      { en: "have nothing to do with", ko: "~와 아무 관련이 없다", note: "부정 관련 표현" },
+      { en: "lose its negative connotation", ko: "부정적 함축 의미를 잃다", note: "의미 중립화 표현" },
+    ],
+    chunks: [
+      { en: "Dictionary definitions are constantly revised to keep up with our changing uses and knowledge.", ko: "사전의 정의는 우리의 변화하는 용법과 지식에 따라 끊임없이 개정된다." },
+      { en: "In Roman times, 'addicts' were people who gave themselves as slaves to their creditors.", ko: "로마 시대에 'addict'는 채권자에게 자신을 노예로 준 사람들이었다." },
+      { en: "The word 'husband' originally referred to being a homeowner; it had nothing to do with being married.", ko: "'husband'는 원래 집 소유자를 의미했으며, 결혼과는 아무 관련이 없었다." },
+      { en: "Centuries later, the word lost its negative connotation.", ko: "수 세기 후, 그 단어(guy)는 부정적 함축 의미를 잃었다." },
+    ],
+    quiz: [
+      {
+        q: "위 글의 빈칸에 들어갈 말로 가장 적절한 것은?\n'If you could transport yourself into the future, you'd find yourself confused by your great-grandchildren's speech because language itself __________________________.'",
+        opts: ["follows strict grammatical rules", "is constantly evolving and changing", "preserves its original meaning forever", "depends on historical documents", "is no longer needed for communication"],
+        ans: 1,
+        exp: "글 전체가 언어의 의미가 시대에 따라 변한다는 예시들(addict, husband, guy)로 구성되어 있으므로, 빈칸에는 '언어가 끊임없이 진화하고 변한다'가 적절하다."
+      },
+      {
+        q: "위 글에서 언급된 단어의 원래 의미가 바르게 연결되지 않은 것은?",
+        opts: ["addict - 빚을 갚지 못해 노예가 된 사람", "husband - 집 소유자(homeowner)", "guy - 가이 포크스의 인형(effigy)에서 유래", "bad/cool/wicked - 미국 슬랭에서 긍정적 의미로 쓰임", "addict - 처음부터 약물 의존자를 지칭함"],
+        ans: 4,
+        exp: "addict의 원래 의미는 약물 의존자가 아니라 '빚을 갚지 못해 채권자에게 노예로 간 사람'이다. ⑤가 틀렸다."
+      }
+    ]
+  },
+  {
+    id: 11,
+    title: "도표 - 4개국 결제 수단 비교",
+    tag: "지문 14 · 도표 독해",
+    text: `[도표 내용 요약]<br><br>
+4개국(독일, 인도, 미국, 중국) 결제 수단 비율 비교:<br><br>
+• <strong style="color:var(--accent2)">현금</strong>: 독일 >60%, 인도 >60%, 미국 >60%, 중국 <span class="word-hl" data-word="lowest" data-def="가장 낮음">최저</span><br>
+• <strong style="color:var(--accent3)">신용/직불카드</strong>: 독일 56%, 인도 56%, 미국 >> 중국<br>
+• <strong style="color:var(--accent4)">모바일 결제</strong>: 중국 <span class="word-hl" data-word="highest" data-def="가장 높음">최고</span>, 독일 < 미국<br><br>
+<span class="word-hl" data-word="핵심 오류" data-def="⑤ 중국은 현금 사용 비중이 가장 높다 → 틀림! 중국은 모바일 결제가 가장 높음">⑤번이 도표 내용과 불일치</span>`,
+    vocab: [
+      { word: "payment method", pos: "n", meaning: "결제 수단", example: "Payment Methods Comparison" },
+      { word: "cash", pos: "n", meaning: "현금", example: "cash usage" },
+      { word: "credit/debit card", pos: "n", meaning: "신용/직불카드", example: "card payment" },
+      { word: "mobile payment", pos: "n", meaning: "모바일 결제", example: "mobile payment in China" },
+      { word: "proportion", pos: "n", meaning: "비율", example: "proportion of cash use" },
+      { word: "exceed", pos: "v", meaning: "초과하다", example: "exceeds 60%" },
+    ],
+    phrases: [
+      { en: "more than twice as high as", ko: "~의 두 배 이상 높은", note: "배수 비교 표현" },
+      { en: "percentage point lower than", ko: "~보다 퍼센트포인트 낮은", note: "수치 비교" },
+      { en: "the highest among the four countries", ko: "네 나라 중 가장 높은", note: "최상급 비교" },
+    ],
+    chunks: [
+      { en: "Germany and India share the same proportion of credit/debit card use at 56%.", ko: "독일과 인도의 신용/직불카드 사용 비율은 56%로 동일하다." },
+      { en: "The US credit/debit card use is more than twice as high as China's.", ko: "미국의 신용/직불카드 사용 비율은 중국의 두 배 이상이다." },
+      { en: "China has the highest mobile payment proportion among the four countries.", ko: "중국은 네 나라 중 모바일 결제 비율이 가장 높다." },
+    ],
+    quiz: [
+      {
+        q: "도표의 내용과 일치하지 않는 문장을 고르시오.",
+        opts: ["세 국가(독일, 인도, 미국)에서 현금 사용 비중이 60%를 초과했다.", "독일과 인도의 신용/직불카드 사용 비중은 56%로 동일하다.", "미국의 신용/직불카드 사용 비중은 중국의 두 배 이상이다.", "독일의 모바일 기기 결제 비중은 미국의 비중보다 3%p 낮다.", "중국은 네 국가 중 현금 사용 비중이 가장 높은 국가이다."],
+        ans: 4,
+        exp: "중국은 모바일 결제 비율이 가장 높은 나라이지, 현금 사용 비율이 가장 높은 나라가 아니다. ⑤가 틀렸다."
+      },
+      {
+        q: "도표에서 중국의 특징으로 옳은 것은?",
+        opts: ["현금 사용 비율이 네 나라 중 가장 높다.", "신용/직불카드 사용 비율이 56%이다.", "모바일 결제 비율이 네 나라 중 가장 높다.", "모바일 결제 비율이 독일과 동일하다.", "미국보다 현금 사용 비율이 높다."],
+        ans: 2,
+        exp: "중국의 특징은 모바일 결제 비율이 네 나라 중 가장 높다는 것이다."
+      }
+    ]
+  }
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let currentPassage = 0;
+let currentMode = 'vocab';
+let scores = {};
+let quizAnswered = {};
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  renderPassageList();
+  renderContent();
+}
+
+function renderPassageList() {
+  const list = document.getElementById('passage-list');
+  list.innerHTML = passages.map((p, i) => `
+    <button class="passage-btn ${i === currentPassage ? 'active' : ''} ${scores[i] ? 'done' : ''}"
+      onclick="selectPassage(${i})">
+      <span class="passage-num">${String(i+1).padStart(2,'0')}</span>
+      <span>${p.title.substring(0, 14)}...</span>
+      <span class="passage-done">✓</span>
+    </button>
+  `).join('');
+}
+
+function selectPassage(i) {
+  currentPassage = i;
+  quizAnswered[i] = quizAnswered[i] || {};
+  renderPassageList();
+  renderContent();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+  renderContent();
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderContent() {
+  const p = passages[currentPassage];
+  const main = document.getElementById('main-content');
+
+  main.innerHTML = `
+    <div class="passage-header">
+      <div class="passage-tag">${p.tag}</div>
+      <div class="passage-title">${p.title}</div>
+      <div class="passage-text">${p.text}</div>
+    </div>
+
+    <div class="panel ${currentMode === 'vocab' ? 'active' : ''}" id="panel-vocab">
+      <div class="section-title">📚 단어 학습</div>
+      <div class="vocab-grid">
+        ${p.vocab.map(v => `
+          <div class="vocab-card">
+            <div><span class="vocab-word">${v.word}</span><span class="vocab-pos">${v.pos}</span></div>
+            <div class="vocab-meaning">${v.meaning}</div>
+            <div class="vocab-example">"${v.example}"</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="panel ${currentMode === 'phrase' ? 'active' : ''}" id="panel-phrase">
+      <div class="section-title">🔗 구문 분석</div>
+      <div class="phrase-list">
+        ${p.phrases.map(ph => `
+          <div class="phrase-card">
+            <div class="phrase-en">${ph.en}</div>
+            <div class="phrase-ko">→ ${ph.ko}</div>
+            ${ph.note ? `<div class="phrase-note">💡 ${ph.note}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="panel ${currentMode === 'trans' ? 'active' : ''}" id="panel-trans">
+      <div class="section-title">🌐 해석 연습</div>
+      <div class="trans-area">
+        ${p.chunks.map((c, i) => `
+          <div class="trans-card">
+            <div class="trans-en">${c.en}</div>
+            <div class="trans-ko" id="trans-ko-${currentPassage}-${i}">${c.ko}</div>
+            <button class="trans-toggle" onclick="toggleTrans(${currentPassage},${i})">
+              <span id="trans-arrow-${currentPassage}-${i}">▼</span> 해석 보기
+            </button>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="panel ${currentMode === 'quiz' ? 'active' : ''}" id="panel-quiz">
+      <div class="section-title">✏️ 내용 이해 퀴즈</div>
+      <div class="score-badge">퀴즈 점수: <span id="quiz-score-badge">0</span> / ${p.quiz.length}</div>
+      <div class="quiz-area">
+        ${p.quiz.map((q, qi) => renderQuiz(q, qi)).join('')}
+      </div>
+    </div>
+  `;
+
+  // Re-attach word tooltip events
+  document.querySelectorAll('.word-hl').forEach(el => {
+    el.addEventListener('mouseenter', showWordTooltip);
+    el.addEventListener('mouseleave', hideWordTooltip);
+    el.addEventListener('mousemove', moveTooltip);
+  });
+
+  updateQuizScore();
+}
+
+function renderQuiz(q, qi) {
+  const pi = currentPassage;
+  const answered = quizAnswered[pi] && quizAnswered[pi][qi] !== undefined;
+  const selected = answered ? quizAnswered[pi][qi] : null;
+  return `
+    <div class="quiz-card">
+      <div class="quiz-qnum">Q${qi + 1}</div>
+      <div class="quiz-question">${q.q.replace(/\n/g, '<br>')}</div>
+      <div class="quiz-options">
+        ${q.opts.map((opt, oi) => {
+          let cls = '';
+          if (answered) {
+            if (oi === q.ans) cls = 'correct';
+            else if (oi === selected) cls = 'wrong';
+          }
+          return `<button class="quiz-opt ${cls} ${answered ? 'disabled' : ''}"
+            onclick="answerQuiz(${pi},${qi},${oi})">
+            <span class="quiz-opt-label">${'①②③④⑤'[oi]}</span>${opt}
+          </button>`;
+        }).join('')}
+      </div>
+      <div class="quiz-feedback ${answered ? 'show' : ''} ${answered && selected === q.ans ? 'ok' : 'bad'}" id="qfb-${pi}-${qi}">
+        ${answered ? (selected === q.ans ? '✅ 정답입니다! ' : '❌ 오답입니다. ') + q.exp : ''}
+      </div>
+    </div>
+  `;
+}
+
+function answerQuiz(pi, qi, oi) {
+  if (!quizAnswered[pi]) quizAnswered[pi] = {};
+  if (quizAnswered[pi][qi] !== undefined) return;
+  quizAnswered[pi][qi] = oi;
+
+  // Re-render quiz area
+  const p = passages[pi];
+  document.getElementById('panel-quiz').querySelector('.quiz-area').innerHTML =
+    p.quiz.map((q, i) => renderQuiz(q, i)).join('');
+
+  updateQuizScore();
+  updateTotalScore();
+}
+
+function updateQuizScore() {
+  const pi = currentPassage;
+  const p = passages[pi];
+  let s = 0;
+  if (quizAnswered[pi]) {
+    p.quiz.forEach((q, qi) => {
+      if (quizAnswered[pi][qi] === q.ans) s++;
+    });
+  }
+  const badge = document.getElementById('quiz-score-badge');
+  if (badge) badge.textContent = s;
+}
+
+function updateTotalScore() {
+  let total = 0, maxTotal = 0;
+  passages.forEach((p, pi) => {
+    maxTotal += p.quiz.length;
+    if (quizAnswered[pi]) {
+      p.quiz.forEach((q, qi) => {
+        if (quizAnswered[pi][qi] === q.ans) total++;
+      });
+    }
+  });
+  document.getElementById('score-display').textContent = `${total} / ${maxTotal}`;
+  document.getElementById('progress-inner').style.width = `${(total/maxTotal)*100}%`;
+}
+
+function toggleTrans(pi, i) {
+  const el = document.getElementById(`trans-ko-${pi}-${i}`);
+  const arrow = document.getElementById(`trans-arrow-${pi}-${i}`);
+  el.classList.toggle('visible');
+  arrow.textContent = el.classList.contains('visible') ? '▲' : '▼';
+}
+
+// ============================================================
+// TOOLTIPS
+// ============================================================
+function showWordTooltip(e) {
+  const tt = document.getElementById('word-tooltip');
+  const word = e.target.dataset.word;
+  const def = e.target.dataset.def;
+  tt.innerHTML = `<strong>${word}</strong><br>${def}`;
+  tt.style.display = 'block';
+}
+function hideWordTooltip() {
+  document.getElementById('word-tooltip').style.display = 'none';
+}
+function moveTooltip(e) {
+  const tt = document.getElementById('word-tooltip');
+  tt.style.left = (e.clientX + 14) + 'px';
+  tt.style.top = (e.clientY - 10) + 'px';
+}
+
+// ============================================================
+// START
+// ============================================================
+init();
+</script>
+</body>
+</html>
